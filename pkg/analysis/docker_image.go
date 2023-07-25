@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -123,4 +124,70 @@ func (image *DockerImage) LayersByAuthor(author string) []DockerLayer {
 		}
 	}
 	return layers
+}
+
+// LayersByCommand returns all layers created with a specific command.
+func (image *DockerImage) LayersByCommand(command string) []DockerLayer {
+	var layers []DockerLayer
+	for _, layer := range image.Layers {
+		if layer.Command == command {
+			layers = append(layers, layer)
+		}
+	}
+	return layers
+}
+
+// LayersInTimeRange returns all layers created in a specific time range.
+func (image *DockerImage) LayersInTimeRange(start, end time.Time) []DockerLayer {
+	var layers []DockerLayer
+	for _, layer := range image.Layers {
+		if layer.Created.After(start) && layer.Created.Before(end) {
+			layers = append(layers, layer)
+		}
+	}
+	return layers
+}
+
+// LastNLayers returns the last N layers
+func (image *DockerImage) LastNLayers(n int) []DockerLayer {
+	if n > len(image.Layers) {
+		n = len(image.Layers)
+	}
+	return image.Layers[len(image.Layers)-n:]
+}
+
+// LargestNLayers returns the largest N layers based on size.
+func (image *DockerImage) LargestNLayers(n int) []DockerLayer {
+	// Copy the slice to aviod modifiying the original
+	copiedLayers := append([]DockerLayer(nil), image.Layers...)
+	sort.Slice(copiedLayers, func(i, j int) bool {
+		return copiedLayers[i].Size > copiedLayers[j].Size
+	})
+	if n > len(copiedLayers) {
+		n = len(copiedLayers)
+	}
+	return copiedLayers[:n]
+}
+
+// TotalTags return the total number of tags in all layers
+func (image *DockerImage) TotalTags() int {
+	total := 0
+	for _, layer := range image.Layers {
+		total += len(layer.Tags)
+	}
+	return total
+}
+
+// UniqueAuthors returns a list of unique authors in all layers.
+func (image *DockerImage) UniqueAuthors() []string {
+	authorMap := make(map[string]struct{})
+	for _, layer := range image.Layers {
+		authorMap[layer.Author] = struct{}{}
+	}
+
+	authors := make([]string, 0, len(authorMap))
+	for author := range authorMap {
+		authors = append(authors, author)
+	}
+	return authors
 }
