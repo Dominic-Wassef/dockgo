@@ -1,7 +1,9 @@
 package analysis
 
 import (
+	"encoding/json"
 	"fmt"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -95,4 +97,30 @@ func (layer *DockerLayer) LayerToString() string {
 // ImageToString returns a human-readable string representation of a DockerImage.
 func (image *DockerImage) ImageToString() string {
 	return fmt.Sprintf("Name: %s, Size: %d bytes, Layers: %d", image.Name, image.Size, len(image.Layers))
+}
+
+// Inspect gets detailed information about the docker image using `docker inspect`.
+func (image *DockerImage) Inspect() (string, error) {
+	output, err := exec.Command("docker", "insepct", image.Name).Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to inspect image: %w", err)
+	}
+
+	var inspectOutput []map[string]interface{}
+	err = json.Unmarshal(output, &inspectOutput)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse inspect output: %w", err)
+	}
+	return fmt.Sprintf("%v", inspectOutput), nil
+}
+
+// LayersByAuthor returns all layers created by a specific author.
+func (image *DockerImage) LayersByAuthor(author string) []DockerLayer {
+	var layers []DockerLayer
+	for _, layer := range image.Layers {
+		if layer.Author == author {
+			layers = append(layers, layer)
+		}
+	}
+	return layers
 }
