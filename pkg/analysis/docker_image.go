@@ -64,3 +64,35 @@ func NewDockerLayer(line string, parent *DockerLayer) (*DockerLayer, error) {
 func ParentLayer(layer *DockerLayer) *DockerLayer {
 	return layer.Parent
 }
+
+// LayerDetails returns a string with detailed information about a DockerLayer.
+func (layer *DockerLayer) LayerDetails() string {
+	return fmt.Sprintf("ID: %s, Size: %d bytes, Command: %s, Author: %s, Created: %s, CreatedBy: %s, Tags: %v",
+		layer.ID, layer.Size, layer.Command, layer.Author, layer.Created, layer.CreatedBy, layer.Tags)
+}
+
+// Hierarchy returns a string representing the full hierarchy of a DockerLayer.
+func (layer *DockerLayer) Hierarchy() string {
+	if layer.Parent == nil {
+		return layer.ID
+	}
+	return layer.Parent.Hierarchy() + " -> " + layer.ID
+}
+
+// CumulativeSize returns the cumulative size of a DockerLayer and all its ancestors.
+func (layer *DockerLayer) CumulativeSize() int64 {
+	if layer.Parent == nil {
+		return layer.Size
+	}
+	return layer.Size + layer.Parent.CumulativeSize()
+}
+
+// LayerToString returns a human-readable string representation of a DockerLayer.
+func (layer *DockerLayer) LayerToString() string {
+	return fmt.Sprintf("ID: %s, Size %d bytes, Command: %s, Author: %s", layer.ID, layer.Size, layer.Command, layer.Author)
+}
+
+// ImageToString returns a human-readable string representation of a DockerImage.
+func (image *DockerImage) ImageToString() string {
+	return fmt.Sprintf("Name: %s, Size: %d bytes, Layers: %d", image.Name, image.Size, len(image.Layers))
+}
