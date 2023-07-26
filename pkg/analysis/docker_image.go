@@ -220,3 +220,43 @@ func (image *DockerImage) UniqueTags() []string {
 	}
 	return tags
 }
+
+// Analyze takes a Docker image name and analyzes the image.
+func Analyze(imageName string) (*DockerImage, error) {
+	fmt.Println("Analyzing image: ", imageName)
+
+	// Get Image history
+	output, err := exec.Command("docker", "history", "--no-trunc", imageName).Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get image history: %w", err)
+	}
+
+	lines := strings.Split(string(output), "\n")
+	var layers []DockerLayer
+	var totalSize int64
+	var parent *DockerLayer = nil
+
+	// Skip the first line because it contains headers
+	for _, line := range lines[1:] {
+		// Skip empty lines and lines with "<missing>" ID.
+		if strings.TrimSpace(line) == "" || strings.Contains(line, "<missing>") {
+			continue
+		}
+
+		layer, err := NewDockerLayer(line, parent)
+		if err != nil {
+			return nil, err
+		}
+
+		layers = append(layers, *layer)
+		totalSize += layer.Size
+		parent = layer
+	}
+
+	image := DockerImage{
+		Name:   imageName,
+		Layers: layers,
+		Size:   totalSize,
+	}
+	return &image, nil
+}
