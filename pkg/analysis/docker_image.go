@@ -191,3 +191,17 @@ func (image *DockerImage) UniqueAuthors() []string {
 	}
 	return authors
 }
+
+// UniqueCommands returns a list of unique commands used in all layers
+func (image *DockerImage) UniqueCommands() []string {
+	commandMap := make(map[string]struct{})
+	for _, layer := range image.Layers {
+		commandMap[layer.Command] = struct{}{}
+	}
+
+	commands := make([]string, 0, len(commandMap))
+	for command := range commandMap {
+		commands = append(commands, command)
+	}
+	return commands
+}
