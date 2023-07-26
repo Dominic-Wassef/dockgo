@@ -205,3 +205,18 @@ func (image *DockerImage) UniqueCommands() []string {
 	}
 	return commands
 }
+
+// UniqueTags returns a list of unique tags used in all layers
+func (image *DockerImage) UniqueTags() []string {
+	tagMap := make(map[string]struct{})
+	for _, layer := range image.Layers {
+		for _, tag := range layer.Tags {
+			tagMap[tag] = struct{}{}
+		}
+	}
+	tags := make([]string, 0, len(tagMap))
+	for tag := range tagMap {
+		tags = append(tags, tag)
+	}
+	return tags
+}
