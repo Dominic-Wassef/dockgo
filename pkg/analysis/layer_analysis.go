@@ -65,3 +65,10 @@ func sortLayers(layers []DockerLayer, comparison func(layer1, layer2 DockerLayer
 	}
 	return copiedLayers[:n]
 }
+
+// LargestLayers returns the layers with the largest sizes.
+func LargestLayers(layers []DockerLayer, n int) []DockerLayer {
+	return sortLayers(layers, func(layer1, layer2 DockerLayer) bool {
+		return layer1.Size > layer2.Size
+	}, n)
+}
