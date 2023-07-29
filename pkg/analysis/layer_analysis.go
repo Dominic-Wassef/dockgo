@@ -42,3 +42,14 @@ func MostProlificAuthors(layers []DockerLayer, n int) []string {
 	}
 	return mostCommon(authorFrequency, n)
 }
+
+// MostCommonTags returns the most common tags.
+func MostCommonTags(layers []DockerLayer, n int) []string {
+	tagFrequency := make(map[string]int)
+	for _, layer := range layers {
+		for _, tag := range layer.Tags {
+			tagFrequency[tag]++
+		}
+	}
+	return mostCommon(tagFrequency, n)
+}
