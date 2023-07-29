@@ -53,3 +53,15 @@ func MostCommonTags(layers []DockerLayer, n int) []string {
 	}
 	return mostCommon(tagFrequency, n)
 }
+
+// General function for sorting layers
+func sortLayers(layers []DockerLayer, comparison func(layer1, layer2 DockerLayer) bool, n int) []DockerLayer {
+	copiedLayers := append([]DockerLayer(nil), layers...)
+	sort.Slice(copiedLayers, func(i, j int) bool {
+		return comparison(copiedLayers[i], copiedLayers[j])
+	})
+	if n > len(copiedLayers) {
+		n = len(copiedLayers)
+	}
+	return copiedLayers[:n]
+}
