@@ -33,3 +33,12 @@ func MostCommonCommands(layers []DockerLayer, n int) []string {
 	}
 	return mostCommon(commandFrequency, n)
 }
+
+// MostProlificAuthors returns the authors who created the most layers.
+func MostProlificAuthors(layers []DockerLayer, n int) []string {
+	authorFrequency := make(map[string]int)
+	for _, layer := range layers {
+		authorFrequency[layer.Author]++
+	}
+	return mostCommon(authorFrequency, n)
+}
