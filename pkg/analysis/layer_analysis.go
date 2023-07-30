@@ -161,3 +161,29 @@ func LayerCountByAuthor(layers []DockerLayer) map[string]int {
 	}
 	return result
 }
+
+// LayerSizeByAuthor returns a map with authors as keys and the total size of all layers they have created as values.
+func LayerSizeByAuthor(layers []DockerLayer) map[string]int64 {
+	result := make(map[string]int64)
+	for _, layer := range layers {
+		result[layer.Author] += layer.Size
+	}
+	return result
+}
+
+// TotalSize returns the total size of all layers.
+func TotalSize(layers []DockerLayer) int64 {
+	var total int64
+	for _, layer := range layers {
+		total += layer.Size
+	}
+	return total
+}
+
+// AverageSize returns the average size of all layers
+func AverageSize(layers []DockerLayer) float64 {
+	if len(layers) == 0 {
+		return 0
+	}
+	return float64(TotalSize(layers)) / float64(len(layers))
+}
