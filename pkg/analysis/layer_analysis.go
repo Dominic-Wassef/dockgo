@@ -187,3 +187,20 @@ func AverageSize(layers []DockerLayer) float64 {
 	}
 	return float64(TotalSize(layers)) / float64(len(layers))
 }
+
+// MedianSize returns the median size of all layers
+func MedianSize(layers []DockerLayer) int64 {
+	layer := append([]DockerLayer(nil), layers...)
+	sort.Slice(layer, func(i, j int) bool {
+		return layer[i].Size < layer[j].Size
+	})
+	if len(layer) == 0 {
+		return 0
+	}
+	middle := len(layer) / 2
+	if len(layer)%2 == 0 {
+		return (layer[middle-1].Size + layer[middle].Size) / 2
+	} else {
+		return layer[middle].Size
+	}
+}
