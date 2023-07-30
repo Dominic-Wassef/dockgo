@@ -1,6 +1,9 @@
 package analysis
 
-import "sort"
+import (
+	"sort"
+	"time"
+)
 
 // A general function for getting the most common elements
 func mostCommon(mapWithCount map[string]int, n int) []string {
@@ -71,4 +74,90 @@ func LargestLayers(layers []DockerLayer, n int) []DockerLayer {
 	return sortLayers(layers, func(layer1, layer2 DockerLayer) bool {
 		return layer1.Size > layer2.Size
 	}, n)
+}
+
+// SmallestLayers returns the layers with the smallest sizes.
+func SmallestLayers(layers []DockerLayer, n int) []DockerLayer {
+	return sortLayers(layers, func(layer1, layer2 DockerLayer) bool {
+		return layer1.Size < layer2.Size
+	}, n)
+}
+
+// OldestLayers returns the oldest layers based on creation date.
+func OldestLayers(layers []DockerLayer, n int) []DockerLayer {
+	return sortLayers(layers, func(layer1, layer2 DockerLayer) bool {
+		return layer1.Created.Before(layer2.Created)
+	}, n)
+}
+
+// NewestLayers returns the newest layers based on creation date.
+func NewestLayers(layers []DockerLayer, n int) []DockerLayer {
+	return sortLayers(layers, func(layer1, layer2 DockerLayer) bool {
+		return layer1.Created.After(layer2.Created)
+	}, n)
+}
+
+// LayerSizeDistribution returns a distribution of layer sizes.
+func LayerSizeDistribution(layers []DockerLayer) map[int64]int {
+	distribution := make(map[int64]int)
+	for _, layer := range layers {
+		distribution[layer.Size]++
+	}
+	return distribution
+}
+
+// LayersInDateRange returns all layers created in a specific date range.
+func LayersInDateRange(layers []DockerLayer, start, end time.Time) []DockerLayer {
+	var result []DockerLayer
+	for _, layer := range layers {
+		if layer.Created.After(start) && layer.Created.Before(end) {
+			result = append(result, layer)
+		}
+	}
+	return result
+}
+
+// LayersWithTags returns all layers that have one or more tags.
+func LayersWithTags(layers []DockerLayer) []DockerLayer {
+	var result []DockerLayer
+	for _, layer := range layers {
+		if len(layer.Tags) > 0 {
+			result = append(result, layer)
+		}
+	}
+	return result
+}
+
+// LayersWithoutTags returns all layers that have no tags.
+func LayersWithoutTags(layers []DockerLayer) []DockerLayer {
+	var result []DockerLayer
+	for _, layer := range layers {
+		if len(layer.Tags) == 0 {
+			result = append(result, layer)
+		}
+	}
+	return result
+}
+
+// LayerWithTag returns all layers that contain a specific tag.
+func LayerWithTag(layers []DockerLayer, tag string) []DockerLayer {
+	var result []DockerLayer
+	for _, layer := range layers {
+		for _, t := range layer.Tags {
+			if t == tag {
+				result = append(result, layer)
+				break
+			}
+		}
+	}
+	return result
+}
+
+// LayerCountByAuthor returns a map with authors as keys and the number of layers they have created as values.
+func LayerCountByAuthor(layers []DockerLayer) map[string]int {
+	result := make(map[string]int)
+	for _, layer := range layers {
+		result[layer.Author]++
+	}
+	return result
 }
