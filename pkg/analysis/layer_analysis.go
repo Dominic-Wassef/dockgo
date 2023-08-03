@@ -204,3 +204,82 @@ func MedianSize(layers []DockerLayer) int64 {
 		return layer[middle].Size
 	}
 }
+
+// FindLayers returns all layers that satisfy a given predicate.
+func FindLayers(layers []DockerLayer, predicate func(layer DockerLayer) bool) []DockerLayer {
+	var result []DockerLayer
+	for _, layer := range layers {
+		if predicate(layer) {
+			result = append(result, layer)
+		}
+	}
+	return result
+}
+
+// AuthorsWithLayerSizeAbove returns all authors who have created layers above a certain size.
+func AuthorsWithLayerSizeAbove(layers []DockerLayer, size int64) []string {
+	authorSet := make(map[string]struct{})
+	for _, layer := range layers {
+		if layer.Size > size {
+			authorSet[layer.Author] = struct{}{}
+		}
+	}
+	authors := make([]string, 0, len(authorSet))
+	for author := range authorSet {
+		authors = append(authors, author)
+	}
+	return authors
+}
+
+// AuthorsWithLayerSizeBelow returns all authors who have created layers below a certain size.
+func AuthorsWithLayerSizeBelow(layers []DockerLayer, size int64) []string {
+	authorSet := make(map[string]struct{})
+	for _, layer := range layers {
+		if layer.Size < size {
+			authorSet[layer.Author] = struct{}{}
+		}
+	}
+	authors := make([]string, 0, len(authorSet))
+	for author := range authorSet {
+		authors = append(authors, author)
+	}
+	return authors
+}
+
+// LayerWithTagCountAbove returns all layers that have a tag count above a certain number.
+func LayerWithTagCountAbove(layers []DockerLayer, count int) []DockerLayer {
+	return FindLayers(layers, func(layer DockerLayer) bool {
+		return len(layer.Tags) > count
+	})
+}
+
+// LayerWithTagCountBelow returns all layers that have a tag count below a certain number.
+func LayerWithTagCountBelow(layers []DockerLayer, count int) []DockerLayer {
+	return FindLayers(layers, func(layer DockerLayer) bool {
+		return len(layer.Tags) < count
+	})
+}
+
+// LayerCountOverTime returns a map from time to the number of layers created by that time.
+func LayerCountOverTime(layers []DockerLayer) map[time.Time]int {
+	copiedLayers := append([]DockerLayer(nil), layers...)
+	sort.Slice(copiedLayers, func(i, j int) bool {
+		return copiedLayers[i].Created.Before(copiedLayers[j].Created)
+	})
+	result := make(map[time.Time]int)
+	for i, layer := range copiedLayers {
+		result[layer.Created] = i + 1
+	}
+	return result
+}
+
+// TagFrequency returns a map from tag to its frequency.
+func TagFrequency(layers []DockerLayer) map[string]int {
+	result := make(map[string]int)
+	for _, layer := range layers {
+		for _, tag := range layer.Tags {
+			result[tag]++
+		}
+	}
+	return result
+}
